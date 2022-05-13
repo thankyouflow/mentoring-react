@@ -2,10 +2,9 @@ import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faMoon,
-    faAngry
 } from "@fortawesome/free-regular-svg-icons";
 import React from 'react';
-import {useLocation} from "react-router-dom";
+import { useForm } from "react-hook-form";
 
 
 const MainContainer = styled.div`
@@ -75,30 +74,29 @@ const Button = styled.input`
   }
 `;
 
-const Test = styled.div`
-  display: flex;
-  height: 100vh; //vh 요소는 높이값의 100분의 1의 단위
-  justify-content: center;
-  align-items: center;
-`;
-
-const Test2 = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: black;
-  flex-direction: column;
-
-  form{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: black;
-    flex-direction: column;
-  }
+const FormError = styled.span`
+  color: tomato;
+  font-weight: 600;
+  font-size: 12px;
+  margin: 5px 0px 10px 0px;
 `;
 
 function Login() {
+    const {
+        register,
+        watch,
+        handleSubmit,
+        formState: { errors },
+        getValues,
+    } = useForm({
+        mode: "onChange",
+    });
+    const onSubmitValid = () => {
+        const { username, password } = getValues();
+        console.log(username)
+        console.log(password)
+    };
+
     return (
         <MainContainer>
             <Wrapper>
@@ -106,17 +104,29 @@ function Login() {
                     <div style={{'color': 'white'}}>
                         <FontAwesomeIcon icon={faMoon} size="6x" />
                     </div>
-                    <form>
+                    <form onSubmit={handleSubmit(onSubmitValid)}>
                         <Input
+                            {...register("username", {
+                                required: "Username is required",
+                                minLength: {
+                                    value: 5,
+                                    message: "Username must be longer than 5 characters"
+                                }
+                            })}
                             name="username"
                             type="text"
                             placeholder="Username"
                         />
+                        <FormError>{errors?.username?.message}</FormError>
                         <Input
+                            {...register("password", {
+                                required: "Password is required.",
+                            })}
                             name="password"
                             type="password"
                             placeholder="Password"
                         />
+                        <FormError>{errors?.password?.message}</FormError>
                         <Button
                             type="submit"
                             value="Log in"
