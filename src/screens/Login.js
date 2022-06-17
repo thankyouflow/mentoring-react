@@ -5,6 +5,8 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import React from 'react';
 import { useForm } from "react-hook-form";
+import { gql, useMutation, useReactiveVar } from "@apollo/client";
+import { logUserIn } from "../apollo";
 
 
 const MainContainer = styled.div`
@@ -81,6 +83,16 @@ const FormError = styled.span`
   margin: 5px 0px 10px 0px;
 `;
 
+const LOGIN_MUTATION = gql`
+  mutation login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+      ok
+      token
+      error
+    }
+  }
+`;
+
 function Login() {
     const {
         register,
@@ -88,13 +100,41 @@ function Login() {
         handleSubmit,
         formState: { errors },
         getValues,
+        setError,
+        clearErrors,
     } = useForm({
         mode: "onChange",
     });
+    const onCompleted = (data) => {
+        const {
+            login: { ok, error, token },
+        } = data;
+        if (!ok) {
+            return setError("result", {
+                message: error,
+            });
+        }
+        if (token) {
+            logUserIn(token);
+        }
+    };
+
+    const [login, { loading }] = useMutation(LOGIN_MUTATION, {
+        onCompleted,
+    });
+
     const onSubmitValid = () => {
+        if (loading) {
+            return;
+        }
         const { username, password } = getValues();
-        console.log(username)
-        console.log(password)
+        login({
+            variables: { username, password },
+        });
+    };
+
+    const clearLoginError = () => {
+        clearErrors("result");
     };
 
     return (
@@ -113,6 +153,7 @@ function Login() {
                                     message: "Username must be longer than 5 characters"
                                 }
                             })}
+                            onChange={clearLoginError}
                             name="username"
                             type="text"
                             placeholder="Username"
@@ -122,6 +163,7 @@ function Login() {
                             {...register("password", {
                                 required: "Password is required.",
                             })}
+                            onChange={clearLoginError}
                             name="password"
                             type="password"
                             placeholder="Password"
@@ -131,6 +173,7 @@ function Login() {
                             type="submit"
                             value="Log in"
                         />
+                        <FormError>{errors?.result?.message}</FormError>
                     </form>
                 </Container>
             </Wrapper>

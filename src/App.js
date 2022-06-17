@@ -5,10 +5,13 @@ import Login from "./screens/Login";
 import NotFound from "./screens/NotFound";
 import SignUp from "./screens/SignUp";
 import Home from "./screens/Home";
+import { ApolloProvider, useReactiveVar } from "@apollo/client";
+import { client, isLoggedInVar } from "./apollo";
 
 function App() {
-    const isLoggedIn = false
+    const isLoggedIn = useReactiveVar(isLoggedInVar);
     return (
+        <ApolloProvider client={client}>
             <Router>
                 <Routes>
                     {isLoggedIn ? (
@@ -22,6 +25,7 @@ function App() {
                     <Route path='*' element={<NotFound/>}/>
                 </Routes>
             </Router>
+        </ApolloProvider>
     );
 }
 
